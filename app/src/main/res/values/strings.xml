@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">UniEmailClient</string>
+
+    <!-- INBOX BUTTONS !-->
+    <string name="refresh_button">Refresh</string>
+    <string name="edit_button">Edit</string>
+    <string name="mark_button">Mark</string>
+    <string name="delete_button">Delete</string>
+
+    <!-- EMAIL VIEW !-->
+    <string name="back_button">Back</string>
+</resources>
