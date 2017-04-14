@@ -42,10 +42,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <Button
+                android:id="@+id/check_all_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/check_all_button"
+                android:visibility="gone"/>
+            <Button
                 android:id="@+id/mark_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/mark_button"
+                android:layout_toRightOf="@+id/check_all_button"
                 android:visibility="gone"/>
             <Button
                 android:id="@+id/delete_button"

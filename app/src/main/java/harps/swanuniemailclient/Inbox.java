@@ -58,6 +58,7 @@ public class Inbox extends Activity {
     static int startEmailDeductor = 9;
     static int endEmailDeductor = 0;
     private boolean refresh = false;
+    private boolean allChecked = false;
 
     private Boolean editButtonsShowing = false;
 
@@ -78,6 +79,7 @@ public class Inbox extends Activity {
         Button editButton = (Button) findViewById(R.id.edit_button);
         final Button markButton = (Button) findViewById(R.id.mark_button);
         final Button deleteButton = (Button) findViewById(R.id.delete_button);
+        final Button checkButton = (Button)findViewById(R.id.check_all_button);
 
         System.out.print("IN ON CREATE");
         new getEmails().execute(refresh);
@@ -124,7 +126,7 @@ public class Inbox extends Activity {
             public void onClick(View view) {
                 ia.setShowCheckboxes();
                 ia.notifyDataSetChanged();
-                showEditButtons(markButton, deleteButton);
+                showEditButtons(markButton, deleteButton, checkButton);
             }
         });
 
@@ -132,8 +134,7 @@ public class Inbox extends Activity {
             @Override
             public void onClick(View view) {
                 // Get checked checkboxes
-
-                new ChangeEmailStatus(ia.emailUIDs,"m").execute();
+                new ChangeEmailStatus(ia.getEmailUIDs(),"m").execute();
                 System.out.println("Mark");
             }
         });
@@ -141,20 +142,37 @@ public class Inbox extends Activity {
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new ChangeEmailStatus(ia.emailUIDs, "d").execute();
+                new ChangeEmailStatus(ia.getEmailUIDs(), "d").execute();
                 System.out.println("Delete");
+            }
+        });
+
+        checkButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!allChecked) {
+                    allChecked = true;
+                    ia.toggleAllCheckboxes(allChecked);
+                    ia.notifyDataSetChanged();
+                }else{
+                    allChecked = false;
+                    ia.toggleAllCheckboxes(allChecked);
+                    ia.notifyDataSetChanged();
+                }
             }
         });
     }
 
     // Shows and hides checkboxes and mark & delete buttons
-    public void showEditButtons(Button markButton, Button deleteButton){
+    public void showEditButtons(Button markButton, Button deleteButton, Button checkButton){
         if(editButtonsShowing){
             editButtonsShowing = false;
+            checkButton.setVisibility(View.GONE);
             markButton.setVisibility(View.GONE);
             deleteButton.setVisibility(View.GONE);
         }else{
             editButtonsShowing = true;
+            checkButton.setVisibility(View.VISIBLE);
             markButton.setVisibility(View.VISIBLE);
             deleteButton.setVisibility(View.VISIBLE);
         }
@@ -333,6 +351,9 @@ public class Inbox extends Activity {
                     ia = new InboxAdapter(context, emails);
                     lv.setAdapter(ia);
                 }else{
+                    // Clear checkbox arrays
+                    ia.clearEmailUIDs();
+                    ia.clearSelectedPos();
                     // Notify Adapter that data has changed
                     ia.notifyDataSetChanged();
                 }
@@ -417,6 +438,7 @@ public class Inbox extends Activity {
                         // Delete from Inbox
                         message.setFlag(Flags.Flag.DELETED, deleted);
                         markDeleted(UID);
+
                     }
                 }
                 inbox.close(true);
@@ -435,7 +457,13 @@ public class Inbox extends Activity {
         }
 
         protected void onPostExecute(Void result){
+            // If request was deletion clear checkbox arrays
+            if(type.equals("d")) {
+                ia.clearEmailUIDs();
+                ia.clearSelectedPos();
+            }
             ia.notifyDataSetChanged();
+
             if(pd.isShowing()){
                 pd.dismiss();
             }

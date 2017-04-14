@@ -20,12 +20,12 @@ import java.util.List;
 
 public class InboxAdapter extends BaseAdapter{
 
-    Context context;
-    ArrayList<ReceivedEmail> emails = new ArrayList<>();
-    LayoutInflater inflater;
-    List<Integer> selectedPos;
-    List<Long> emailUIDs;
-    Boolean showCheckboxes;
+    private Context context;
+    private ArrayList<ReceivedEmail> emails = new ArrayList<>();
+    private LayoutInflater inflater;
+    private List<Integer> selectedPos;
+    private List<Long> emailUIDs;
+    private Boolean showCheckboxes;
 
     public InboxAdapter(Context context, ArrayList<ReceivedEmail> emails){
         this.context = context;
@@ -51,6 +51,28 @@ public class InboxAdapter extends BaseAdapter{
         return id;
     }
 
+    public List<Integer> getSelectedPos(){
+        return selectedPos;
+    }
+
+    public List<Long> getEmailUIDs(){
+        return emailUIDs;
+    }
+
+    /**
+     * Used to clear the checkbox selected pos array
+     */
+    public void clearSelectedPos(){
+        this.selectedPos.clear();
+    }
+
+    /**
+     * Used to clear the checkbox email UIDs array
+     */
+    public void clearEmailUIDs(){
+        this.emailUIDs.clear();
+    }
+
     /**
      * Holds items for view recycling
      */
@@ -62,6 +84,7 @@ public class InboxAdapter extends BaseAdapter{
         public boolean unread;
         public CheckBox checkBox;
         public Long emailUID;
+        public int id;
     }
 
     public void setUnread(ViewHolder viewHolder, boolean unread){
@@ -78,6 +101,22 @@ public class InboxAdapter extends BaseAdapter{
         }else{
             showCheckboxes = true;
         }
+    }
+
+    // Toggles all checkboxes in adapter
+    public void toggleAllCheckboxes(Boolean checked){
+        if(checked) {
+            for (int i = 0; i < emails.size(); i++) {
+                selectedPos.add(i);
+                emailUIDs.add(emails.get(i).getUID());
+            }
+        }else{
+            for (int i = 0; i < emails.size(); i++) {
+                selectedPos.remove((Object)i);
+                emailUIDs.remove(emails.get(i).getUID());
+            }
+        }
+
     }
 
     /**

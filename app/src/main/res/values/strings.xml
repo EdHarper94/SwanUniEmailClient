@@ -4,8 +4,9 @@
     <!-- INBOX BUTTONS !-->
     <string name="refresh_button">Refresh</string>
     <string name="edit_button">Edit</string>
-    <string name="mark_button">Mark</string>
+    <string name="mark_button">Unread/Read</string>
     <string name="delete_button">Delete</string>
+    <string name="check_all_button">Un/Check All</string>
 
     <!-- EMAIL VIEW !-->
     <string name="back_button">Back</string>
