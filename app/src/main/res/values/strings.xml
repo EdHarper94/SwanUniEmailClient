@@ -9,4 +9,5 @@
 
     <!-- EMAIL VIEW !-->
     <string name="back_button">Back</string>
+    <string name="download_button">Download Attachments</string>
 </resources>

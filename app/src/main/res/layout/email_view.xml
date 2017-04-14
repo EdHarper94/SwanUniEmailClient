@@ -13,23 +13,19 @@
         android:id="@+id/download_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Download"
+        android:text="@string/download_button"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:visibility="gone"/>
-    <LinearLayout
-        android:id="@+id/details_view"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:orientation="horizontal"
-        android:layout_below="@+id/back_button">
         <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:id="@+id/details_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/back_button">
             <TextView
                 android:id="@+id/from_view"
                 android:layout_width="220dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="10dp"
@@ -37,32 +33,41 @@
             <TextView
                 android:id="@+id/date_view"
                 android:layout_width="130dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_margin="10dp"/>
         </RelativeLayout>
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/content_view"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:orientation="vertical"
-        android:layout_below="@+id/details_view">
-        <RelativeLayout
+        <LinearLayout
+            android:id="@+id/content_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:orientation="vertical"
+            android:layout_below="@+id/details_view">
             <TextView
                 android:id="@+id/subject_view"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_margin="10dp"/>
+                android:layout_height="20dp"
+                android:layout_weight="0"/>
             <WebView
                 android:id="@+id/message_view"
                 android:layout_width="match_parent"
-                android:layout_height="350dp"
+                android:layout_height="match_parent"
                 android:layout_below="@id/subject_view"
-                android:layout_margin="10dp"/>
-        </RelativeLayout>
-    </LinearLayout>
+                android:layout_weight="1"/>
+            <GridView
+                android:id="@+id/attachment_grid"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_below="@+id/content_view"
+                android:visibility="visible"
+                android:numColumns="4"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_weight="0"/>
+
+        </LinearLayout>
+
 </RelativeLayout>

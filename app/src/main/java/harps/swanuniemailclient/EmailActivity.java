@@ -2,6 +2,7 @@ package harps.swanuniemailclient;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ContentProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -11,6 +12,8 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.GridView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,18 +50,14 @@ public class EmailActivity extends Activity {
     private List<File> attachments = new ArrayList<File>();
 
     private Context context = EmailActivity.this;
+    private GridView gridView;
+    private AttachmentAdapter attachmentAdapter;
 
     ReceivedEmail email;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.email_view);
-
-        /*
-        // Allow File:// URI
-        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-        StrictMode.setVmPolicy(builder.build());
-        */
 
         // Get passed email
         Intent intent = getIntent();
@@ -74,6 +73,7 @@ public class EmailActivity extends Activity {
         TextView dateView = (TextView)findViewById(R.id.date_view);
         TextView subjectView = (TextView)findViewById(R.id.subject_view);
         WebView messageView = (WebView) findViewById(R.id.message_view);
+        gridView = (GridView)findViewById(R.id.attachment_grid);
 
         // Add data to views
         dateView.setText(email.getReceivedDate().toString());
@@ -140,7 +140,10 @@ public class EmailActivity extends Activity {
                     // Save attachment
 
                     // Create temp file from bodybody part
-                    File file = File.createTempFile((bodyPart.getFileName()),null,context.getCacheDir());
+                    //File file = File.createTempFile((bodyPart.getFileName()),null,context.getCacheDir());
+
+                    File file = new File(context.getCacheDir() + "/" + bodyPart.getFileName());
+                    System.out.println(file.toString());
                     // Save to internal storage
                     ((MimeBodyPart)bodyPart).saveFile(file);
                     attachments.add(file);
@@ -161,10 +164,10 @@ public class EmailActivity extends Activity {
         protected void onPostExecute(Void result) {
             // DEBUG CODE //
             for(int i=0; i<attachments.size(); i++){
-                System.out.println(attachments);
+                System.out.println("ON POST" + attachments.get(i));
                 File file = attachments.get(i);
 
-                viewAttachment(context, file);
+                //viewAttachment(context, file);
 
             }
 
@@ -174,30 +177,12 @@ public class EmailActivity extends Activity {
             for(String s:files){
                 System.out.println("FILE : " +s);
             }
+            if(attachments!=null) {
+                attachmentAdapter = new AttachmentAdapter(context, attachments);
+                gridView.setAdapter(attachmentAdapter);
 
-        }
-    }
 
-    public void viewAttachment(Context context, File url){
-        File file = url;
-
-        String filename = file.getName();
-
-        String fileType = URLConnection.guessContentTypeFromName(filename);
-
-        if (fileType == null) {
-            fileType = "*/*";
-        }
-        Uri data = Uri.parse("content://harps.universityemailclient/" + filename);
-
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(data, fileType);
-        try {
-            startActivity(intent);
-        }catch (ActivityNotFoundException e){
-            Toast.makeText(context,
-                    "You currently don't have an application for the file type: " + fileType + ". Please download one to open it.",
-                    Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -214,7 +199,7 @@ public class EmailActivity extends Activity {
     }
 
     /**
-     * Goes back to previous activity on successful cache deletion
+     * Goes back to previous activity and delete attachments from cache
      */
     public void goBack(){
 

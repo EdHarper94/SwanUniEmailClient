@@ -24,6 +24,7 @@ public class AttachmentsProvider extends ContentProvider{
 
     public ParcelFileDescriptor openFile(Uri uri, String mode)throws FileNotFoundException{
         File file = new File(getContext().getCacheDir(), uri.getPath());
+        System.out.println("FILEEEE" + file.toString());
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
     }
 
