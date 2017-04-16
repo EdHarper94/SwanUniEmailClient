@@ -12,17 +12,17 @@ public class Email implements Parcelable {
 
     private Long UID;
     private String subject;
-    private String text;
+    private String message;
     private Boolean attachment;
 
     public Email(){
 
     }
 
-    public Email(Long UID, String subject, String text, Boolean attachment){
+    public Email(Long UID, String subject, String message, Boolean attachment){
         this.UID = UID;
         this.subject = subject;
-        this.text = text;
+        this.message = message;
         this.attachment = attachment;
     }
 
@@ -34,8 +34,8 @@ public class Email implements Parcelable {
         return subject;
     }
 
-    public String getText(){
-        return text;
+    public String getMessage(){
+        return message;
     }
 
     public Boolean getAttachment(){
@@ -43,13 +43,13 @@ public class Email implements Parcelable {
     }
 
     public String toString(){
-        return "ID: " + getUID() + ". Subject: " + getSubject() + ". Message: " + getText() + ". Attachment: " + getAttachment();
+        return "ID: " + getUID() + ". Subject: " + getSubject() + ". Message: " + getMessage() + ". Attachment: " + getAttachment();
     }
 
     protected Email(Parcel in) {
         UID = in.readByte() == 0x00 ? null : in.readLong();
         subject = in.readString();
-        text = in.readString();
+        message = in.readString();
         byte attachmentVal = in.readByte();
         attachment = attachmentVal == 0x02 ? null : attachmentVal != 0x00;
     }
@@ -68,7 +68,7 @@ public class Email implements Parcelable {
             dest.writeLong(UID);
         }
         dest.writeString(subject);
-        dest.writeString(text);
+        dest.writeString(message);
         if (attachment == null) {
             dest.writeByte((byte) (0x02));
         } else {

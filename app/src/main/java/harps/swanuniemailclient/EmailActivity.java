@@ -84,7 +84,7 @@ public class EmailActivity extends Activity {
 
         // Pass email content to webview
         messageView.getSettings().setJavaScriptEnabled(true);
-        messageView.loadDataWithBaseURL("", email.getText(), "text/html; charset=utf-8", "UTF-8", "");
+        messageView.loadDataWithBaseURL("", email.getMessage(), "text/html; charset=utf-8", "UTF-8", "");
 
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -11,4 +11,16 @@
     <!-- EMAIL VIEW !-->
     <string name="back_button">Back</string>
     <string name="download_button">Download Attachments</string>
+
+    <!-- SEND VIEW !-->
+    <string name="discard_button">Discard</string>
+    <string name="send_button">Send</string>
+
+    <string name="to_edit_text_label">To:</string>
+    <string name="add_recipients_button">+</string>
+    <string name="cc_bcc_button">Cc/Bcc</string>
+    <string name="cc_edit_text_label">Cc: </string>
+    <string name="bcc_edit_text_label">Bcc: </string>
+    <string name="subject_edit_text_label">Subject:</string>
+    <string name="message_hint">Please enter your message...</string>
 </resources>

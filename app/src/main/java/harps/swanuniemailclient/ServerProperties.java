@@ -27,4 +27,24 @@ public class ServerProperties {
         return props;
     }
 
+    public Properties getSMTPProperties(){
+        props.put("mail.smtp.from", EmailUser.getEmailAddress());
+
+        // Server settings
+        props.put("mail.smtp.host", imapSettings.getServerAddress());
+        props.put("mail.smtp.port", imapSettings.getOutPort());
+        props.put("mail.smtp.auth", "true");
+
+        // SSL/STARTTLS settings
+        props.put("mail.smtp.socketFactory.port", imapSettings.getOutPort());
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.socketFactor.fallback", "false");
+        props.put("mail.smtp.starttls.enable", true);
+
+        // DEBUG
+        props.put("mail.smtp.connectiontimeout", "5000");
+
+        return props;
+    }
+
 }

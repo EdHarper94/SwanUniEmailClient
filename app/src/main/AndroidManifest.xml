@@ -30,6 +30,13 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
+        <activity android:name=".SendEmail">
+            <intent-filter>
+                <action android:name="com.egwh.swanuniemailclient.SendEmail"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
         <provider
             android:name="harps.swanuniemailclient.AttachmentsProvider"
             android:authorities="harps.swanuniemailclient"
