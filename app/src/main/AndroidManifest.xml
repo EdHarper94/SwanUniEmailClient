@@ -31,9 +31,9 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity android:name=".SendEmail">
+        <activity android:name=".SendEmailActivity">
             <intent-filter>
-                <action android:name="com.egwh.swanuniemailclient.SendEmail"/>
+                <action android:name="com.egwh.swanuniemailclient.SendEmailActivity"/>
 
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>

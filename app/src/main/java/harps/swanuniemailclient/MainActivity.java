@@ -14,7 +14,7 @@ public class MainActivity extends AppCompatActivity {
         /*
         // SEND EMAIL
         Email email = new Email (EmailUser.getEmailAddress(), "FIRST EMAIL", "This is the first email test from prototype 1");
-        SendEmail sm = new SendEmail(this, email);
+        SendEmailActivity sm = new SendEmailActivity(this, email);
         sm.execute();
         System.out.println("EMAIL SENT 2");
 
@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(inboxIntent);
         */
 
-        Intent inboxIntent = new Intent("com.egwh.swanuniemailclient.SendEmail");
+        Intent inboxIntent = new Intent("com.egwh.swanuniemailclient.SendEmailActivity");
         startActivity(inboxIntent);
 
 

@@ -5,19 +5,16 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.Inflater;
 
 /**
  * Created by eghar on 13/04/2017.
@@ -64,7 +61,7 @@ public class AttachmentAdapter extends BaseAdapter {
                 }
             }
         });
-        if(context instanceof SendEmail){
+        if(context instanceof SendEmailActivity){
             attachmentButton.setClickable(false);
         }
 

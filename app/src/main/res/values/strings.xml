@@ -10,6 +10,7 @@
 
     <!-- EMAIL VIEW !-->
     <string name="back_button">Back</string>
+    <string name="reply_button">Reply</string>
     <string name="download_button">Download Attachments</string>
 
     <!-- SEND VIEW !-->

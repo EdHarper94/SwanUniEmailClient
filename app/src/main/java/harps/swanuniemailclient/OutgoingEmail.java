@@ -12,13 +12,15 @@ public class OutgoingEmail extends Email {
     private ArrayList<String> recipients;
     private ArrayList<String> ccRecipients;
     private ArrayList<String> bccRecipients;
+    private ArrayList<File> attachments;
 
     public OutgoingEmail(Long UID, String subject, String message, Boolean attachment,
-                         ArrayList<String> recipients, ArrayList<String> ccRecipients, ArrayList<String> bccRecipients){
+                         ArrayList<String> recipients, ArrayList<String> ccRecipients, ArrayList<String> bccRecipients, ArrayList<File> attachments){
         super(UID, subject, message, attachment);
         this.recipients = recipients;
         this.ccRecipients = ccRecipients;
         this.bccRecipients = bccRecipients;
+        this.attachments = attachments;
     }
 
     public ArrayList<String> getRecipients(){
@@ -31,5 +33,9 @@ public class OutgoingEmail extends Email {
 
     public ArrayList<String> getBccRecipients(){
         return bccRecipients;
+    }
+
+    public ArrayList<File> getAttachments(){
+        return attachments;
     }
 }

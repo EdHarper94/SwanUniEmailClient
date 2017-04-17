@@ -1,11 +1,8 @@
 package harps.swanuniemailclient;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
-import android.content.ContentProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,13 +10,11 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.GridView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -67,6 +62,7 @@ public class EmailActivity extends Activity {
 
         Button backButton = (Button)findViewById(R.id.back_button);
         Button downloadButton = (Button)findViewById(R.id.download_button);
+        Button replyButton = (Button)findViewById(R.id.reply_button);
 
         // Init views
         TextView fromView = (TextView)findViewById(R.id.from_view);
@@ -102,6 +98,23 @@ public class EmailActivity extends Activity {
             @Override
             public void onClick(View view) {
                 new downloadAttachment().execute();
+            }
+        });
+
+        replyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start new intent
+                Intent viewEmail = new Intent(context, SendEmailActivity.class);
+
+                // Get Email to send to reply activity
+                ReceivedEmail replyEmail = email;
+
+                // Pass email to new activity
+                viewEmail.putExtra("email", replyEmail);
+
+
+                startActivity(viewEmail);
             }
         });
     }
@@ -167,8 +180,6 @@ public class EmailActivity extends Activity {
                 System.out.println("ON POST" + attachments.get(i));
                 File file = attachments.get(i);
 
-                //viewAttachment(context, file);
-
             }
 
             // DEBUG CODE
@@ -180,8 +191,6 @@ public class EmailActivity extends Activity {
             if(attachments!=null) {
                 attachmentAdapter = new AttachmentAdapter(context, attachments);
                 gridView.setAdapter(attachmentAdapter);
-
-
             }
         }
     }
