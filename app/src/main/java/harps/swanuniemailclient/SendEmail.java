@@ -1,33 +1,50 @@
 package harps.swanuniemailclient;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.Selection;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.ipaulpro.afilechooser.utils.FileUtils;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
+import javax.mail.BodyPart;
 import javax.mail.Message;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.SendFailedException;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SearchException;
+import javax.sql.DataSource;
 
 /**
  * Class to send email via University IMAP server
@@ -47,12 +64,18 @@ public class SendEmail extends Activity {
     private EditText bccEditText;
 
     private Button discardButton;
+    private Button attachmentButton;
     private Button sendButton;
     private Button addRecipientButton;
     private Button ccBccButton;
+    private Button addCcButton;
+    private Button addBccButton;
+    private Button deleteAttButton;
 
     private LinearLayout ccContainer;
     private LinearLayout bccContainer;
+    private GridView attachmentGrid;
+    private AttachmentAdapter attachmentAdapter;
     private Boolean showCarbonCopies = false;
 
     private OutgoingEmail outEmail;
@@ -65,7 +88,11 @@ public class SendEmail extends Activity {
     private String bccList = "";
     private String subject;
     private String message;
-    private Boolean attachment;
+    private Boolean attachment = false;
+
+    private ArrayList<File> attachments = new ArrayList<>();
+
+    private static final int CHOOSER_CODE = 1;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,10 +106,16 @@ public class SendEmail extends Activity {
 
         ccContainer = (LinearLayout)findViewById(R.id.cc_linear_container);
         bccContainer = (LinearLayout)findViewById(R.id.bcc_container);
+        attachmentGrid = (GridView)findViewById(R.id.attachment_grid);
+
 
         discardButton = (Button)findViewById(R.id.discard_button);
         addRecipientButton = (Button)findViewById(R.id.add_recipient_button);
         ccBccButton = (Button)findViewById(R.id.cc_bcc_button);
+        addCcButton = (Button)findViewById(R.id.add_cc_recipient_button);
+        addBccButton = (Button)findViewById(R.id.add_bcc_recipient_button);
+        attachmentButton = (Button)findViewById(R.id.add_attachment_button);
+        deleteAttButton = (Button)findViewById(R.id.delete_attachment_button);
         sendButton = (Button)findViewById(R.id.send_button);
 
         addRecipientButton.setOnClickListener(new View.OnClickListener() {
@@ -108,6 +141,33 @@ public class SendEmail extends Activity {
             }
         });
 
+        addCcButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addCcRecipients();
+            }
+        });
+
+        addBccButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addBccRecipients();
+            }
+        });
+
+        attachmentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectAttachment();
+            }
+        });
+
+        deleteAttButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteAttachments();
+            }});
+
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -116,6 +176,109 @@ public class SendEmail extends Activity {
         });
 
     }
+
+    /**
+     * Select attachment using aFileChooser library.
+     * Request required permission if not granted
+     * @See aFileChooser
+     */
+    public void selectAttachment(){
+        Intent contentIntent = FileUtils.createGetContentIntent();
+
+        Intent intent = Intent.createChooser(contentIntent, "Please select your file attachment.");
+
+        int minSdk = Build.VERSION.SDK_INT;
+
+        if(minSdk>=23){
+            if(checkReadStoragePermission() == false){
+                ActivityCompat.requestPermissions(SendEmail.this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, CHOOSER_CODE);
+            }
+        }
+        startActivityForResult(intent, CHOOSER_CODE);
+
+    }
+
+    /**
+     * Gets permission request result
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if(requestCode == CHOOSER_CODE){
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                selectAttachment();
+            } else {
+                Log.d("PERMISSION", requestCode + "Permission Not Granted" );
+            }
+        }
+    }
+
+    /**
+     * Checks required permission is granted
+     * @return
+     */
+    public boolean checkReadStoragePermission(){
+        int permission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
+        if(permission != PackageManager.PERMISSION_GRANTED){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+    /**
+     * Once file has been selected save it
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(requestCode == CHOOSER_CODE) {
+            System.out.println("REQUEST OKAY");
+            if(resultCode == RESULT_OK) {
+                System.out.println(requestCode);
+                Uri uri = data.getData();
+                String filePath = FileUtils.getPath(context, uri);
+
+                if (filePath != null && FileUtils.isLocal(filePath)) {
+                    File file = new File(filePath);
+                    attachments.add(file);
+                    displayAttachmentList();
+                }
+
+                System.out.println("FILE = " + filePath);
+            }
+        }else{
+            System.out.println("ERROR");
+        }
+    }
+
+    /**
+     * Displays Attachments to screen
+     */
+    public void displayAttachmentList(){
+        attachment = true;
+        attachmentGrid.setVisibility(View.VISIBLE);
+        deleteAttButton.setVisibility(View.VISIBLE);
+        System.out.println("IN HEREEEEE");
+        if(attachmentAdapter == null) {
+            attachmentAdapter = new AttachmentAdapter(context, attachments);
+            attachmentGrid.setAdapter(attachmentAdapter);
+        }else{
+            attachmentAdapter.notifyDataSetChanged();
+        }
+    }
+
+    public void deleteAttachments(){
+        attachment = false;
+        attachmentGrid.setVisibility(View.GONE);
+        deleteAttButton.setVisibility(View.GONE);
+        attachments.clear();
+        attachmentAdapter.notifyDataSetChanged();
+    }
+
 
     /**
      * Gets the recipients from "to_edit_text"
@@ -239,7 +402,6 @@ public class SendEmail extends Activity {
 
         subject = subjectEditText.getText().toString();
         message = messageEditText.getText().toString();
-        attachment = false;
 
         // If there are no carbon copy recipient
         outEmail = new OutgoingEmail(null, subject, message, attachment, recipients, ccRecipients, bccRecipients);
@@ -287,9 +449,12 @@ public class SendEmail extends Activity {
             System.out.println("PASSWORD AUTHENTICATED");
             try {
                 // Create new message object and add details
-                MimeMessage mm = new MimeMessage(session);
+                Message mm = new MimeMessage(session);
                 mm.setFrom(new InternetAddress((EmailUser.getEmailAddress()),
                         EmailUser.getFirstName() + " " + EmailUser.getLastName() ));
+
+                // Add subject
+                mm.setSubject(outEmail.getSubject());
 
                 // Gets all the Outgoing Email recipients and adds them to the message
                 recipients = outEmail.getRecipients();
@@ -298,20 +463,42 @@ public class SendEmail extends Activity {
                     mm.addRecipients(Message.RecipientType.TO, InternetAddress.parse(r));
                 }
 
+                // Gets all the CC Email recipients and adds them to the message
                 ccRecipients = outEmail.getCcRecipients();
                 for(String c : ccRecipients){
                     System.out.println("CC." + c +".");
                     mm.addRecipients(Message.RecipientType.CC, InternetAddress.parse(c));
                 }
 
+                // Gets all the Bcc Email recipients and adds them to the message
                 bccRecipients = outEmail.getBccRecipients();
                 for(String b : bccRecipients){
                     System.out.println("BCC." + b +".");
                     mm.addRecipients(Message.RecipientType.BCC, InternetAddress.parse(b));
                 }
 
-                mm.setSubject(outEmail.getSubject(), "UTF-8");
-                mm.setText(outEmail.getMessage());
+                MimeBodyPart bodyPart = new MimeBodyPart();
+
+                // Add email text
+                bodyPart.setContent(outEmail.getMessage(), "text/html");
+
+                Multipart multipart = new MimeMultipart();
+                multipart.addBodyPart(bodyPart);
+
+                // Add any attachments
+                if(attachment == true){
+                    for(int i=0; i<attachments.size(); i++){
+                        MimeBodyPart attachPart = new MimeBodyPart();
+                        File file = attachments.get(i);
+                        String fileName = file.getName();
+
+                        attachPart.attachFile(file);
+                        System.out.println("ATTACHED FILE = " + fileName);
+                        multipart.addBodyPart(attachPart);
+                    }
+                }
+
+                mm.setContent(multipart);
 
                 Transport.send(mm);
                 System.out.println("EMAIL SENT");
@@ -338,6 +525,9 @@ public class SendEmail extends Activity {
         }
     }
 
+    /**
+     * Tidying arrays
+     */
     public void clearRecipientArrays(){
         recipients.clear();
         ccRecipients.clear();

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">UniEmailClient</string>
+    <string name="app_name">SwanUniEmailClient</string>
 
     <!-- INBOX BUTTONS !-->
     <string name="refresh_button">Refresh</string>
@@ -14,6 +14,7 @@
 
     <!-- SEND VIEW !-->
     <string name="discard_button">Discard</string>
+    <string name="add_attachment_button">+ Insert</string>
     <string name="send_button">Send</string>
 
     <string name="to_edit_text_label">To:</string>
@@ -23,4 +24,5 @@
     <string name="bcc_edit_text_label">Bcc: </string>
     <string name="subject_edit_text_label">Subject:</string>
     <string name="message_hint">Please enter your message...</string>
+    <string name="delete_attachment_button">Delete</string>
 </resources>

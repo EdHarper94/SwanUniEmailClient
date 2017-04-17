@@ -1,5 +1,6 @@
 package harps.swanuniemailclient;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -11,12 +12,6 @@ public class OutgoingEmail extends Email {
     private ArrayList<String> recipients;
     private ArrayList<String> ccRecipients;
     private ArrayList<String> bccRecipients;
-
-    public OutgoingEmail(Long UID, String subject, String message, Boolean attachment,
-                         ArrayList<String> recipients){
-        super(UID, subject, message, attachment);
-        this.recipients = recipients;
-    }
 
     public OutgoingEmail(Long UID, String subject, String message, Boolean attachment,
                          ArrayList<String> recipients, ArrayList<String> ccRecipients, ArrayList<String> bccRecipients){

@@ -47,11 +47,6 @@ public class AttachmentAdapter extends BaseAdapter {
         return id;
     }
 
-    public class ViewHolder{
-        public File file;
-        public String attachmentName;
-        public Button attachmentButton;
-    }
 
     public View getView(final int id, View currentView, ViewGroup viewGroup){
 
@@ -59,45 +54,22 @@ public class AttachmentAdapter extends BaseAdapter {
         attachmentButton.setId(id);
         attachmentButton.setText(attachments.get(id).getName());
 
+
+
         attachmentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                viewAttachment(context, attachments.get(id));
+                if (context instanceof  EmailActivity) {
+                    viewAttachment(context, attachments.get(id));
+                }
             }
         });
+        if(context instanceof SendEmail){
+            attachmentButton.setClickable(false);
+        }
 
         return attachmentButton;
     }
-
-    /*
-    @Override
-    public View getView(int id, View currentView, ViewGroup viewGroup) {
-        final ViewHolder viewHolder;
-        if(currentView == null){
-            // Init viewholder
-            viewHolder = new ViewHolder();
-
-            // Inflate View
-            currentView = inflater.inflate(R.layout.email_attachment, viewGroup, false);
-            viewHolder.attachmentButton = (Button) currentView.findViewById(R.id.attachment_button);
-
-            currentView.setTag(viewHolder);
-        }else{
-           viewHolder = (ViewHolder) currentView.getTag();
-        }
-        viewHolder.file = attachments.get(id);
-        viewHolder.attachmentName = attachments.get(id).getName();
-        viewHolder.attachmentButton.setText(viewHolder.attachmentName);
-
-        viewHolder.attachmentButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                viewAttachment(context, viewHolder.file);
-            }
-        });
-        return currentView;
-    }
-    */
 
     public void viewAttachment(Context context, File url){
         File file = url;

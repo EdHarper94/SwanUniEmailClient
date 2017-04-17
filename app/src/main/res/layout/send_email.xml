@@ -15,6 +15,14 @@
             android:layout_height="wrap_content"
             android:text="@string/discard_button"/>
         <Button
+            android:id="@+id/add_attachment_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/send_button"
+            android:layout_toStartOf="@+id/send_button"
+            android:text="@string/add_attachment_button"/>
+        <Button
             android:id="@+id/send_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -122,7 +130,6 @@
                 android:id="@+id/subject_edit_text_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
                 android:text="@string/subject_edit_text_label"
                 android:textSize="20sp"
                 />
@@ -132,12 +139,40 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="6"/>
         </LinearLayout>
-        <EditText
-            android:id="@+id/message_edit_text"
+        <LinearLayout
+            android:id="@+id/content_linear_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:hint="@string/message_hint"
-            android:gravity="top"
-            android:layout_below="@+id/subject_linear_container"/>
+            android:layout_below="@+id/subject_linear_container"
+            android:orientation="vertical">
+            <EditText
+                android:id="@+id/message_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/message_hint"
+                android:gravity="top"
+                android:layout_weight="1"/>
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/message_edit_text">
+            <Button
+                android:id="@+id/delete_attachment_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignRight="@+id/attachment_grid"
+                android:visibility="gone"
+                android:text="@string/delete_attachment_button"/>
+            <GridView
+                android:id="@+id/attachment_grid"
+                android:layout_width="265dp"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:numColumns="3"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp" />
+            </RelativeLayout>
+        </LinearLayout>
     </RelativeLayout>
 </RelativeLayout>
