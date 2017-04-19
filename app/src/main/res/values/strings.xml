@@ -2,6 +2,7 @@
     <string name="app_name">SwanUniEmailClient</string>
 
     <!-- INBOX BUTTONS !-->
+    <string name="create_email_button">+ New</string>
     <string name="refresh_button">Refresh</string>
     <string name="edit_button">Edit</string>
     <string name="mark_button">Unread/Read</string>

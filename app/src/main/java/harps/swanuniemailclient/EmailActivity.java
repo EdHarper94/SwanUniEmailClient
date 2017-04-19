@@ -82,6 +82,8 @@ public class EmailActivity extends Activity {
         messageView.getSettings().setJavaScriptEnabled(true);
         messageView.loadDataWithBaseURL("", email.getMessage(), "text/html; charset=utf-8", "UTF-8", "");
 
+        new markRead().execute();
+
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -117,6 +119,33 @@ public class EmailActivity extends Activity {
                 startActivity(viewEmail);
             }
         });
+    }
+
+    public class markRead extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            try{
+                props = new ServerProperties().getInboxProperties();
+                session = Session.getInstance(props, null);
+                store = session.getStore("imaps");
+                store.connect(imapSettings.getServerAddress(), EmailUser.getEmailAddress(), EmailUser.getPassword());
+
+                inbox = store.getFolder("Inbox");
+                UIDFolder uf = (UIDFolder) inbox;
+                inbox.open(Folder.READ_WRITE);
+
+                Long UID = email.getUID();
+                Message message = uf.getMessageByUID(UID);
+                message.getContent();
+                inbox.close(false);
+            }catch(Exception e){
+
+            }
+
+            return null;
+        }
     }
 
     public class downloadAttachment extends AsyncTask<Void, Void, Void>{
@@ -207,25 +236,28 @@ public class EmailActivity extends Activity {
         }
     }
 
+    // Passes UID back to calling activity to update read identifier
+    public void setRead(){
+        Intent intent = new Intent();
+        intent.putExtra("uid", email.getUID());
+        setResult(RESULT_OK, intent);
+    }
+
     /**
      * Goes back to previous activity and delete attachments from cache
      */
     public void goBack(){
 
+        // If there are attachments
         if(email.getAttachment()== true){
+            // Perform cleaning
             deleteFiles();
             attachments.clear();
-
-            // DEBUG CODE //
-            File dir = getApplicationContext().getCacheDir();
-            String files[] = dir.list();
-            for(String s:files){
-                System.out.println("FILE : " +s);
-            }
 
         }else{
             Toast.makeText(this, "ERROR CLEARING ATTACHMENTS", Toast.LENGTH_SHORT);
         }
+        setRead();
         finish();
     }
 }

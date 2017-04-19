@@ -14,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.text.Selection;
 import android.util.Log;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -24,6 +25,7 @@ import com.ipaulpro.afilechooser.utils.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Class to send email via University IMAP server
@@ -55,6 +57,7 @@ public class SendEmailActivity extends Activity {
     private LinearLayout bccContainer;
     private GridView attachmentGrid;
     private AttachmentAdapter attachmentAdapter;
+    private WebView replyContent;
     private Boolean showCarbonCopies = false;
 
     private OutgoingEmail outEmail;
@@ -67,6 +70,9 @@ public class SendEmailActivity extends Activity {
     private String bccList = "";
     private String subject;
     private String message;
+    private String originalMessage;
+    private Date originalDate;
+    private String originalSender;
     private Boolean attachment = false;
 
     ReceivedEmail receivedEmail;
@@ -80,12 +86,6 @@ public class SendEmailActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.send_email);
 
-        // Check whether this is a reply request
-        Intent intent = getIntent();
-        receivedEmail = (ReceivedEmail) intent.getParcelableExtra("email");
-        if(receivedEmail!=null){
-            isReply = true;
-        }
 
         toEditText = (EditText)findViewById(R.id.to_edit_text);
         subjectEditText = (EditText)findViewById(R.id.subject_edit_text);
@@ -96,6 +96,7 @@ public class SendEmailActivity extends Activity {
         ccContainer = (LinearLayout)findViewById(R.id.cc_linear_container);
         bccContainer = (LinearLayout)findViewById(R.id.bcc_container);
         attachmentGrid = (GridView)findViewById(R.id.attachment_grid);
+        replyContent = (WebView)findViewById(R.id.reply_content);
 
 
         discardButton = (Button)findViewById(R.id.discard_button);
@@ -164,14 +165,29 @@ public class SendEmailActivity extends Activity {
             }
         });
 
+        discardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                discardEmail();
+            }
+        });
+
+        // Check whether this is a reply request
+        Intent intent = getIntent();
+        receivedEmail = intent.getParcelableExtra("email");
+        if(receivedEmail!=null){
+            isReply = true;
+            prepareReply();
+        }
+
     }
 
-    //
-    ///
-    ////
-    /////// TO DO
     public void prepareReply(){
-
+        System.out.println(receivedEmail);
+        toEditText.setText(receivedEmail.getFrom());
+        subjectEditText.setText("Re: " + receivedEmail.getSubject());
+        replyContent.getSettings().setJavaScriptEnabled(true);
+        replyContent.loadDataWithBaseURL("", receivedEmail.getMessage(), "text/html; charset=utf-8", "UTF-8", "");
     }
 
 
@@ -398,11 +414,23 @@ public class SendEmailActivity extends Activity {
             System.out.println(s);
         }
 
-        subject = subjectEditText.getText().toString();
-        message = messageEditText.getText().toString();
 
-        // If there are no carbon copy recipient
-        outEmail = new OutgoingEmail(null, subject, message, attachment, recipients, ccRecipients, bccRecipients, attachments);
+        if(!isReply) {
+            subject = subjectEditText.getText().toString();
+            message = messageEditText.getText().toString();
+            originalMessage = null;
+            originalDate = null;
+            originalSender = null;
+        }else {
+            originalMessage = receivedEmail.getMessage();
+            originalDate = receivedEmail.getReceivedDate();
+            originalSender = receivedEmail.getFrom();
+        }
+
+
+
+        // If there are no carbon copy recipients
+        outEmail = new OutgoingEmail(null, subject, message, attachment, recipients, ccRecipients, bccRecipients, attachments, originalSender, originalMessage, originalDate);
 
 
         if(recipients!= null) {
@@ -420,6 +448,11 @@ public class SendEmailActivity extends Activity {
         }
 
     }
+
+    public void discardEmail(){
+        finish();
+    }
+
     /**
      * Tidying arrays
      */

@@ -41,6 +41,8 @@ import javax.mail.UIDFolder;
 
 public class Inbox extends Activity {
 
+    private final int VIEW_EMAIL_REQUEST = 1;
+
     private ImapSettings imapSettings = new ImapSettings();
     private Properties props = new Properties();
 
@@ -80,6 +82,7 @@ public class Inbox extends Activity {
         final Button markButton = (Button) findViewById(R.id.mark_button);
         final Button deleteButton = (Button) findViewById(R.id.delete_button);
         final Button checkButton = (Button)findViewById(R.id.check_all_button);
+        final Button createButton = (Button)findViewById(R.id.create_email_button);
 
         System.out.print("IN ON CREATE");
         new getEmails().execute(refresh);
@@ -107,7 +110,16 @@ public class Inbox extends Activity {
                 // Pass email to new activity
                 viewEmail.putExtra("email", email);
 
-                startActivity(viewEmail);
+                startActivityForResult(viewEmail, VIEW_EMAIL_REQUEST);
+            }
+        });
+
+        createButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent createEmail = new Intent(context, SendEmailActivity.class);
+
+                startActivity(createEmail);
             }
         });
 
@@ -117,7 +129,7 @@ public class Inbox extends Activity {
                 refresh = true;
                 new getEmails().execute(refresh);
                 refresh = false;
-                lv.setSelection(1);
+                lv.setSelection(0);
             }
         });
 
@@ -161,6 +173,24 @@ public class Inbox extends Activity {
                 }
             }
         });
+    }
+
+    /**
+     * Once email has been viewed updates the unread status + notifies adapter
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == VIEW_EMAIL_REQUEST && resultCode == RESULT_OK){
+            Long UID = data.getLongExtra("uid", 0);
+
+            // Toggle unread status
+            toggleUnread(UID, false);
+
+            // Notify adapter
+            ia.notifyDataSetChanged();
+        }
     }
 
     // Shows and hides checkboxes and mark & delete buttons

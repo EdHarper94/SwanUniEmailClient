@@ -20,14 +20,14 @@ public class MainActivity extends AppCompatActivity {
 
        */
 
-        /*
+
         Intent inboxIntent = new Intent("com.egwh.swanuniemailclient.Inbox");
         startActivity(inboxIntent);
-        */
 
+        /*
         Intent inboxIntent = new Intent("com.egwh.swanuniemailclient.SendEmailActivity");
         startActivity(inboxIntent);
-
+        */
 
     }
 }

@@ -82,8 +82,6 @@ public class SendEmail extends AsyncTask<Void, Void, String> {
             }
         });
 
-
-        System.out.println("PASSWORD AUTHENTICATED");
         try {
             // Create new message object and add details
             Message mm = new MimeMessage(session);
@@ -114,18 +112,41 @@ public class SendEmail extends AsyncTask<Void, Void, String> {
                 mm.addRecipients(Message.RecipientType.BCC, InternetAddress.parse(b));
             }
 
-            attachment = outEmail.getAttachment();
-            attachments = outEmail.getAttachments();
-            MimeBodyPart bodyPart = new MimeBodyPart();
 
-            // Add email text
-            bodyPart.setContent(outEmail.getMessage(), "text/html");
 
             Multipart multipart = new MimeMultipart();
+
+            MimeBodyPart bodyPart = new MimeBodyPart();
+            String thisMessage = outEmail.getMessage();
+
+            // If this is a reply
+            if(outEmail.getOriginalMessage() != null) {
+                String replyMessage = outEmail.getOriginalMessage();
+
+                // Append new message to original with details
+                StringBuffer emailMessage = new StringBuffer(thisMessage);
+                emailMessage.append("\r \n");
+                emailMessage.append("<HR>");
+                emailMessage.append("<b>From: </b>" + outEmail.getOriginalSender() + "<br/>");
+                emailMessage.append("<b>Date: </b>" + outEmail.getOrignalDate().toString() + "<br/>");
+                emailMessage.append("<b>Subject: </b>" + outEmail.getSubject() + "<br/>");
+                emailMessage.append("\r \n");
+
+                emailMessage.append(replyMessage);
+
+                bodyPart.setContent(emailMessage.toString(), "text/html");
+            }else{
+                bodyPart.setContent(thisMessage.toString(), "text/html");
+            }
+
             multipart.addBodyPart(bodyPart);
 
+            // Boolean attachment check
+            attachment = outEmail.getAttachment();
             // Add any attachments
             if(attachment == true){
+                // Get attachments
+                attachments = outEmail.getAttachments();
                 for(int i=0; i<attachments.size(); i++){
                     MimeBodyPart attachPart = new MimeBodyPart();
                     File file = attachments.get(i);
@@ -137,6 +158,7 @@ public class SendEmail extends AsyncTask<Void, Void, String> {
                 }
             }
 
+            // Combine multipart email.
             mm.setContent(multipart);
 
             Transport.send(mm);

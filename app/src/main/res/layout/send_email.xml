@@ -139,7 +139,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="6"/>
         </LinearLayout>
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/content_linear_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -154,7 +154,7 @@
                 android:layout_weight="1"/>
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_below="@+id/message_edit_text">
                 <GridView
                     android:id="@+id/attachment_grid"
@@ -166,6 +166,11 @@
                     android:layout_alignParentTop="true"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true" />
+                <WebView
+                    android:id="@+id/reply_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/attachment_grid"/>
                 <Button
                     android:id="@+id/delete_attachment_button"
                     android:layout_width="wrap_content"
@@ -176,7 +181,7 @@
                     android:layout_toRightOf="@+id/attachment_grid"
                     android:layout_toEndOf="@+id/attachment_grid" />
             </RelativeLayout>
-        </LinearLayout>
+        </RelativeLayout>
 
     </RelativeLayout>
 </RelativeLayout>
