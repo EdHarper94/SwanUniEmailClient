@@ -4,8 +4,12 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Email Class
- * Created by eghar on 28/03/2017.
+ * @file Email.java
+ * @author Ed Harper
+ * @date 28/03/2017
+ *
+ * Email object class for holding and maintaing Email data
+ * Implements Parcelable to allow for parsing object via intents
  */
 
 public class Email implements Parcelable {
@@ -19,6 +23,13 @@ public class Email implements Parcelable {
 
     }
 
+    /**
+     * Initialises email object for storing and maintaining email data.
+     * @param UID
+     * @param subject
+     * @param message
+     * @param attachment
+     */
     public Email(Long UID, String subject, String message, Boolean attachment){
         this.UID = UID;
         this.subject = subject;
@@ -46,6 +57,10 @@ public class Email implements Parcelable {
         return "ID: " + getUID() + ". Subject: " + getSubject() + ". Message: " + getMessage() + ". Attachment: " + getAttachment();
     }
 
+    /**
+     * Initialises parcel with data passed from in
+     * @param in
+     */
     protected Email(Parcel in) {
         UID = in.readByte() == 0x00 ? null : in.readLong();
         subject = in.readString();
@@ -59,6 +74,11 @@ public class Email implements Parcelable {
         return 0;
     }
 
+    /**
+     * Packages object into parcel
+     * @param dest the destination parcel
+     * @param flags flags about how the object should be written
+     */
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         if (UID == null) {

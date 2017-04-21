@@ -1,10 +1,14 @@
 package harps.swanuniemailclient;
 
 /**
- * Created by eghar on 29/03/2017.
+ * @file ServerSettings.java
+ * @author Ed Harper
+ * @date 29/03/2017
+ *
+ * Static IMAP server settings.
  */
 
-public class ImapSettings {
+public class ServerSettings {
 
     private static final String SERVER_ADDRESS = "mobile.swansea.ac.uk";
     private static final String INC_SETTINGS = "SSL/TLS";

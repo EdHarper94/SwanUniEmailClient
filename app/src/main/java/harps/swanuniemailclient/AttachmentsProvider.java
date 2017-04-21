@@ -12,8 +12,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 /**
+ * @file AttachmentsProvider.java
+ * @author Ed Harper
+ * @date 13/04/2017
+ *
  * Content provider for attachments to allow URI access to private cache folder.
- * Created by eghar on 13/04/2017.
  */
 
 public class AttachmentsProvider extends ContentProvider{
@@ -22,9 +25,18 @@ public class AttachmentsProvider extends ContentProvider{
         return false;
     }
 
+    /**
+     * The open file parcer. Takes passed uri and adds it to the cache directory.
+     * Opens file using provider
+     * @see <AndroidManifest.xml/.AttachmentsProvider>
+     * @see <http://stackoverflow.com/questions/40703407/android-intent-action-send-from-internal-storage-with-content-provider>
+     * @param uri
+     * @param mode
+     * @return
+     * @throws FileNotFoundException
+     */
     public ParcelFileDescriptor openFile(Uri uri, String mode)throws FileNotFoundException{
         File file = new File(getContext().getCacheDir(), uri.getPath());
-        System.out.println("FILEEEE" + file.toString());
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
     }
 

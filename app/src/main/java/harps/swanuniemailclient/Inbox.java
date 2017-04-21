@@ -32,18 +32,42 @@ import javax.mail.Store;
 import javax.mail.UIDFolder;
 
 /**
- *
- * Inbox view. Grabs inbox messages from IMAP server and passes them to InboxAdapter
+ * @file Inbox.java
+ * @author Ed Harper
+ * @date 30/03/2017
  * @see InboxAdapter
  *
- * Created by eghar on 30/03/2017.
+ * Inbox view. Grabs inbox messages from IMAP server and passes them to InboxAdapter
  */
 
 public class Inbox extends Activity {
 
     private final int VIEW_EMAIL_REQUEST = 1;
 
-    private ImapSettings imapSettings = new ImapSettings();
+    // Mime type final strings
+    private final String TEXT = "text/*";
+    private final String TEXT_PLAIN = "text/plain";
+    private final String TEXT_HTML = "text/html";
+    private final String MULTI = "multipart/*";
+    private final String ALTERNATIVE = "multipart/alternative";
+    private final String MIXED = "multipart/mixed";
+
+    // Update final strings
+    private final String MARK = "m";
+    private final String DELETE = "d";
+
+    // IMAP final settings
+    private final String IMAPS = "imaps";
+    private final String INBOX = "inbox";
+    private final String DELETED_ITEMS = "Deleted Items";
+    private final ServerSettings IMAP_SETTINGS = new ServerSettings();
+
+
+    // Create Buttons
+    private Button refreshButton, editButton, markButton, deleteButton, checkButton, createButton;
+
+    private final String CONNECTION_ERROR = "Cannot connect to server, please try again later.";
+
     private Properties props = new Properties();
 
     private Folder inbox;
@@ -57,8 +81,8 @@ public class Inbox extends Activity {
     private ListView lv;
     private ProgressDialog pd;
 
-    static int startEmailDeductor = 9;
-    static int endEmailDeductor = 0;
+    private static int startEmailDeductor = 9;
+    private static int endEmailDeductor = 0;
     private boolean refresh = false;
     private boolean allChecked = false;
 
@@ -77,20 +101,19 @@ public class Inbox extends Activity {
         setContentView(R.layout.inbox);
 
         lv = (ListView) findViewById(R.id.email_list);
-        Button refreshButton = (Button) findViewById(R.id.refresh_button);
-        Button editButton = (Button) findViewById(R.id.edit_button);
-        final Button markButton = (Button) findViewById(R.id.mark_button);
-        final Button deleteButton = (Button) findViewById(R.id.delete_button);
-        final Button checkButton = (Button)findViewById(R.id.check_all_button);
-        final Button createButton = (Button)findViewById(R.id.create_email_button);
+        refreshButton = (Button) findViewById(R.id.refresh_button);
+        editButton = (Button) findViewById(R.id.edit_button);
+        markButton = (Button) findViewById(R.id.mark_button);
+        deleteButton = (Button) findViewById(R.id.delete_button);
+        checkButton = (Button)findViewById(R.id.check_all_button);
+        createButton = (Button)findViewById(R.id.create_email_button);
 
-        System.out.print("IN ON CREATE");
         new getEmails().execute(refresh);
 
         lv.setOnScrollListener(new EndlessScrollListener() {
             @Override
             public boolean onLoadMore(int page, int totalItemsCount) {
-                System.out.println("LOADDD MOREEEE");
+
                 new getEmails().execute(refresh);
                 return true;
 
@@ -118,7 +141,6 @@ public class Inbox extends Activity {
             @Override
             public void onClick(View v) {
                 Intent createEmail = new Intent(context, SendEmailActivity.class);
-
                 startActivity(createEmail);
             }
         });
@@ -129,6 +151,7 @@ public class Inbox extends Activity {
                 refresh = true;
                 new getEmails().execute(refresh);
                 refresh = false;
+                // Result list view
                 lv.setSelection(0);
             }
         });
@@ -146,16 +169,14 @@ public class Inbox extends Activity {
             @Override
             public void onClick(View view) {
                 // Get checked checkboxes
-                new ChangeEmailStatus(ia.getEmailUIDs(),"m").execute();
-                System.out.println("Mark");
+                new ChangeEmailStatus(ia.getEmailUIDs(),MARK).execute();
             }
         });
 
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new ChangeEmailStatus(ia.getEmailUIDs(), "d").execute();
-                System.out.println("Delete");
+                new ChangeEmailStatus(ia.getEmailUIDs(), DELETE).execute();
             }
         });
 
@@ -193,7 +214,9 @@ public class Inbox extends Activity {
         }
     }
 
-    // Shows and hides checkboxes and mark & delete buttons
+    /**
+     * Shows and hides checkboxes, mark & delete buttons
+     */
     public void showEditButtons(Button markButton, Button deleteButton, Button checkButton){
         if(editButtonsShowing){
             editButtonsShowing = false;
@@ -208,24 +231,32 @@ public class Inbox extends Activity {
         }
     }
 
-    // Increments deductors
+    /**
+     * Incremements the email deductors
+     */
     public void incrementDeductors(){
         this.startEmailDeductor +=10;
         this.endEmailDeductor +=10;
     }
 
-    // Detects whether request is a refresh or continued loading request
+    /**
+     * Checks whether request is a refresh.
+     * If refresh deductors are reset and emails cleared.
+     * Else continue getting new emails
+     * @param isRefresh
+     * @param totalMessages
+     * @return
+     * @throws MessagingException
+     */
     public Message[] isRefresh(Boolean isRefresh, int totalMessages) throws MessagingException {
         // If refresh request
         if(isRefresh == true){
-            System.out.println("Refresh TRUE ***********************");
             // Set deductors to default
             startEmailDeductor = 9;
             endEmailDeductor = 0;
             emails.clear();
             messages =  inbox.getMessages(totalMessages - startEmailDeductor, totalMessages);
         }else {
-            System.out.println("Refresh FALSE********************");
             // Get emails in inbox
             messages = inbox.getMessages(totalMessages - startEmailDeductor, totalMessages - endEmailDeductor);
         }
@@ -233,27 +264,36 @@ public class Inbox extends Activity {
     }
 
     /**
+     * Gets text body from multipart message
      * Source: http://www.oracle.com/technetwork/java/javamail/faq/index.html#mainbody
      * Return the primary text content of the message.
      */
+    /**
+     * Gets text body from multipart message
+     * @see <http://www.oracle.com/technetwork/java/javamail/faq/index.html#mainbody></http://www.oracle.com/technetwork/java/javamail/faq/index.html#mainbody>
+     * @param p the passed part
+     * @return the primary text content of the message
+     * @throws MessagingException
+     * @throws IOException
+     */
     private String getText(Part p) throws MessagingException, IOException {
-        if (p.isMimeType("text/*")) {
+        if (p.isMimeType(TEXT)) {
             String s = (String)p.getContent();
-            textIsHtml = p.isMimeType("text/html");
+            textIsHtml = p.isMimeType(TEXT_HTML);
             return s;
         }
 
-        if (p.isMimeType("multipart/alternative")) {
+        if (p.isMimeType(ALTERNATIVE)) {
             // prefer html text over plain text
             Multipart mp = (Multipart)p.getContent();
             String text = null;
             for (int i = 0; i < mp.getCount(); i++) {
                 Part bp = mp.getBodyPart(i);
-                if (bp.isMimeType("text/plain")) {
+                if (bp.isMimeType(TEXT_PLAIN)) {
                     if (text == null)
                         text = getText(bp);
                     continue;
-                } else if (bp.isMimeType("text/html")) {
+                } else if (bp.isMimeType(TEXT_HTML)) {
                     String s = getText(bp);
                     if (s != null)
                         return s;
@@ -262,7 +302,7 @@ public class Inbox extends Activity {
                 }
             }
             return text;
-        } else if (p.isMimeType("multipart/*")) {
+        } else if (p.isMimeType(MULTI)) {
             Multipart mp = (Multipart)p.getContent();
             for (int i = 0; i < mp.getCount(); i++) {
                 String s = getText(mp.getBodyPart(i));
@@ -275,6 +315,7 @@ public class Inbox extends Activity {
     }
 
     /**
+     * Checks whether message (email) has an attachment
      * http://www.oracle.com/technetwork/java/javamail/faq/index.html#hasattach
      * @param message
      * @return
@@ -282,7 +323,7 @@ public class Inbox extends Activity {
      * @throws IOException
      */
     public boolean hasAttachments(Message message) throws MessagingException, IOException {
-        if (message.isMimeType("multipart/mixed")) {
+        if (message.isMimeType(MIXED)) {
             Multipart multipart = (Multipart)message.getContent();
             if (multipart.getCount() > 1)
                 return true;
@@ -295,6 +336,9 @@ public class Inbox extends Activity {
      */
     public class getEmails extends AsyncTask<Boolean, Void, Void> {
 
+        /**
+         * Progress dialog for fetching emails
+         */
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -313,16 +357,15 @@ public class Inbox extends Activity {
             Boolean isRefresh = params[0];
 
             try {
+                // Connect
                 session = Session.getInstance(props, null);
-                store = session.getStore("imaps");
-                store.connect(imapSettings.getServerAddress(), EmailUser.getEmailAddress(), EmailUser.getPassword());
+                store = session.getStore(IMAPS);
+                store.connect(IMAP_SETTINGS.getServerAddress(), EmailUser.getEmailAddress(), EmailUser.getPassword());
 
-                inbox = store.getFolder("Inbox");
+                // Get folder
+                inbox = store.getFolder(INBOX);
                 UIDFolder uf = (UIDFolder)inbox;
                 inbox.open(Folder.READ_ONLY);
-
-                // **** DEBUG CODE **** //
-                System.out.println("# of Undread Messages : " + inbox.getUnreadMessageCount());
 
                 int totalMessages = inbox.getMessageCount();
 
@@ -354,9 +397,7 @@ public class Inbox extends Activity {
                 inbox.close(false);
                 store.close();
 
-                // **** DEBUG CODE **** //
-                System.out.println("MESSAGES DOWNLOADED "+refresh);
-
+                // Finally increment deductors
                 incrementDeductors();
 
             }catch (IOException e){
@@ -370,12 +411,9 @@ public class Inbox extends Activity {
 
         @Override
         protected void onPostExecute(Void result) {
-            // **** DEBUG CODE **** //
-            System.out.println("EMAIL COUNT: " + emails.size());
-            for (int i = 0; i < emails.size(); i++) {
-                System.out.println(emails.get(i));
-            }
+            // Check emails have been downloaded
             if(emails != null){
+                // Check array adapter has been initialised
                 if(ia == null) {
                     // If there is no Adapter create one and pass emails
                     ia = new InboxAdapter(context, emails);
@@ -384,10 +422,12 @@ public class Inbox extends Activity {
                     // Clear checkbox arrays
                     ia.clearEmailUIDs();
                     ia.clearSelectedPos();
+
                     // Notify Adapter that data has changed
                     ia.notifyDataSetChanged();
                 }
             }
+            // Dismiss progress dialog
             if(pd.isShowing()){
                 pd.dismiss();
             }
@@ -397,13 +437,17 @@ public class Inbox extends Activity {
 
 
     /**
-     * Alters passed emails statuses to deleted or unread/read.
+     * Alters passed emails statuses to deleted or unread/read on server.
      */
     public class ChangeEmailStatus extends AsyncTask<Void, Void, Void>{
-        List<Long> checkedEmails;
-        String type;
-
-
+        private Exception exception;
+        private List<Long> checkedEmails;
+        private String type;
+        /**
+         * Initialises changeEmailStatus with checked emails and the type of update to execute
+         * @param checkedEmails
+         * @param type
+         */
         public ChangeEmailStatus(List<Long> checkedEmails, String type){
             this.checkedEmails = checkedEmails;
             this.type = type;
@@ -422,47 +466,45 @@ public class Inbox extends Activity {
         protected Void doInBackground(Void... result) {
 
             props = new ServerProperties().getInboxProperties();
-            System.out.println(checkedEmails);
-            System.out.println("In do in background");
             try {
+                // Connect
                 session = Session.getInstance(props, null);
-                store = session.getStore("imaps");
-                store.connect(imapSettings.getServerAddress(), EmailUser.getEmailAddress(), EmailUser.getPassword());
+                store = session.getStore(IMAPS);
+                store.connect(IMAP_SETTINGS.getServerAddress(), EmailUser.getEmailAddress(), EmailUser.getPassword());
 
-                inbox = store.getFolder("Inbox");
+                // Get folder
+                inbox = store.getFolder(INBOX);
                 UIDFolder uf = (UIDFolder) inbox;
                 inbox.open(Folder.READ_WRITE);
 
+                // Loop through selected emails
                 for(int i=0; i<checkedEmails.size(); i++){
-                    System.out.println("E LIST" + checkedEmails.get(i));
                     Long UID = checkedEmails.get(i);
                     Message message = uf.getMessageByUID(UID);
                     Boolean unread;
                     Boolean seen;
 
                     // If message is mark request
-                    if(type.equals("m")) {
+                    if(type.equals(MARK)) {
                         // If message is marked seen then set to unread
                         if (message.isSet(Flags.Flag.SEEN)) {
                             unread = true;
                             seen = false;
                             message.setFlag(Flags.Flag.SEEN, seen);
                             toggleUnread(UID, unread);
-                            System.out.println(" 1    UID: " + UID + ". Unread: " + unread);
                         } else {
                             // Message is not seen so set to unread
                             unread = false;
                             seen = true;
                             message.setFlag(Flags.Flag.SEEN, seen);
                             toggleUnread(UID, unread);
-                            System.out.println(" 2    UID: " + UID + ". Unread: " + unread);
                         }
                     }
                     // Else if delete request
-                    else if(type.equals("d")){
+                    else if(type.equals(DELETE)){
                         Boolean deleted = true;
                         // Get Deleted Items Folder
-                        Folder deletedItems = store.getFolder("Deleted Items");
+                        Folder deletedItems = store.getFolder(DELETED_ITEMS);
                         // Move email/s to Folder
                         inbox.copyMessages(new Message[]{message}, deletedItems);
                         // Delete from Inbox
@@ -475,20 +517,26 @@ public class Inbox extends Activity {
                 store.close();
 
             }catch(MailConnectException me){
-                me.printStackTrace();
-                Toast.makeText(Inbox.this, "UNABLE TO CONNECT", Toast.LENGTH_LONG).show();
-            } catch (NoSuchProviderException e1) {
-                e1.printStackTrace();
-            } catch (MessagingException e1) {
-                e1.printStackTrace();
+                this.exception = me;
+            } catch (NoSuchProviderException spe) {
+                this.exception = spe;
+            } catch (MessagingException me) {
+                this.exception = me;
             }
 
             return null;
         }
 
+        /**
+         * Updates UI on UI thread
+         * @param result
+         */
         protected void onPostExecute(Void result){
+            if(exception!=null){
+                Toast.makeText(Inbox.this, CONNECTION_ERROR, Toast.LENGTH_LONG).show();
+            }
             // If request was deletion clear checkbox arrays
-            if(type.equals("d")) {
+            if(type.equals(DELETE)) {
                 ia.clearEmailUIDs();
                 ia.clearSelectedPos();
             }

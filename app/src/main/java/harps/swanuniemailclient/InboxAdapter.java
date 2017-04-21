@@ -15,7 +15,11 @@ import java.util.List;
 
 
 /**
- * Created by eghar on 31/03/2017.
+ * @file InboxAdapter.java
+ * @author Ed Harper
+ * @date 31/03/2017
+ *
+ * Inbox adpater for inflating email views and adding data
  */
 
 public class InboxAdapter extends BaseAdapter{
@@ -27,6 +31,11 @@ public class InboxAdapter extends BaseAdapter{
     private List<Long> emailUIDs;
     private Boolean showCheckboxes;
 
+    /**
+     * Initialises inbox adapter with passed context and emails arraylist
+     * @param context the passed context
+     * @param emails the emails to add to the view
+     */
     public InboxAdapter(Context context, ArrayList<ReceivedEmail> emails){
         this.context = context;
         this.emails = emails;
@@ -36,25 +45,44 @@ public class InboxAdapter extends BaseAdapter{
         this.showCheckboxes = false;
     }
 
-
+    /**
+     * The total number of emails
+     * @return
+     */
     public int getCount(){
         return emails.size();
     }
 
-    public Object getItem(int id){
-        System.out.println("THIS IS THE ERROR");
-        return emails.get(id);
+    /**
+     * Gets the email at position
+     * @param position the position
+     * @return
+     */
+    public Object getItem(int position){
+        return emails.get(position);
     }
 
-    public long getItemId(int id){
-        System.out.println("THIS IS THE ERROR 2");
-        return id;
+    /**
+     * Ges the row id for specified position
+     * @param position
+     * @return
+     */
+    public long getItemId(int position){
+        return position;
     }
 
+    /**
+     * Gets the selected checkboxes
+     * @return List of the selected checkbox positions
+     */
     public List<Integer> getSelectedPos(){
         return selectedPos;
     }
 
+    /**
+     * Gets the selected emails
+     * @return List of the selected email UIDs
+     */
     public List<Long> getEmailUIDs(){
         return emailUIDs;
     }
@@ -87,6 +115,11 @@ public class InboxAdapter extends BaseAdapter{
         public int id;
     }
 
+    /**
+     * Sets the Unread image based on unread bool value
+     * @param viewHolder The viewholder we are toggling
+     * @param unread the unread bool value
+     */
     public void setUnread(ViewHolder viewHolder, boolean unread){
         if(unread){
             viewHolder.unreadImage.setBackgroundColor(ContextCompat.getColor(context, R.color.unreadBlue));
@@ -122,12 +155,12 @@ public class InboxAdapter extends BaseAdapter{
     /**
      * Inflates inbox_email.xml and goes through data and adds to view
      * @see Inbox
-     * @param id
-     * @param currentView
-     * @param viewGroup
+     * @param position position of item with the data set
+     * @param currentView the view to recycle
+     * @param viewGroup the parent view
      * @return
      */
-    public View getView(final int id, View currentView, ViewGroup viewGroup){
+    public View getView(final int position, View currentView, ViewGroup viewGroup){
         final ViewHolder viewHolder;
         // New view
         if(currentView == null) {
@@ -149,11 +182,11 @@ public class InboxAdapter extends BaseAdapter{
             viewHolder = (ViewHolder) currentView.getTag();
         }
         // Set data
-        viewHolder.fromText.setText(emails.get(id).getFrom().toString());
-        viewHolder.dateText.setText(emails.get(id).getReceivedDate().toString());
-        viewHolder.subjectText.setText(emails.get(id).getSubject());
-        viewHolder.unread = (emails.get(id).getUnread());
-        viewHolder.emailUID = (emails.get(id).getUID());
+        viewHolder.fromText.setText(emails.get(position).getFrom().toString());
+        viewHolder.dateText.setText(emails.get(position).getReceivedDate().toString());
+        viewHolder.subjectText.setText(emails.get(position).getSubject());
+        viewHolder.unread = (emails.get(position).getUnread());
+        viewHolder.emailUID = (emails.get(position).getUID());
         setUnread(viewHolder, viewHolder.unread);
 
         // Add checkbox listener
@@ -163,11 +196,10 @@ public class InboxAdapter extends BaseAdapter{
                 CheckBox checkBox = (CheckBox) view.findViewById(R.id.email_checkBox);
                 // Store checked checkbos positions
                 if(checkBox.isChecked()){
-                    selectedPos.add(id);
+                    selectedPos.add(position);
                     emailUIDs.add(viewHolder.emailUID);
-                    System.out.println(viewHolder.emailUID);
                 }else if(!checkBox.isChecked()){
-                    selectedPos.remove((Object) id);
+                    selectedPos.remove((Object) position);
                     emailUIDs.remove(viewHolder.emailUID);
                 }
             }
@@ -180,7 +212,7 @@ public class InboxAdapter extends BaseAdapter{
         }
 
         // Check which checkboxes are checked
-        if(selectedPos.contains(id)) {
+        if(selectedPos.contains(position)) {
             viewHolder.checkBox.setChecked(true);
         }else{
             viewHolder.checkBox.setChecked(false);

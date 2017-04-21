@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -30,25 +31,35 @@ import javax.mail.UIDFolder;
 import javax.mail.internet.MimeBodyPart;
 
 /**
- * Singular Email Activity View
- * Created by eghar on 09/04/2017.
+ * @file EmailActivity.java
+ * @author Ed Harper
+ * @date 09/04/2017
+ *
+ * Singular Email Activity View for viewing single email
  */
 
 public class EmailActivity extends Activity {
 
-    private ImapSettings imapSettings = new ImapSettings();
-    private Properties props = new Properties();
+    // Final variables
+    private final String INBOX = "Inbox";
+    private final String IMAPS = "imaps";
+    private final String EMAIL = "email";
 
+    // Server settings
+    private final ServerSettings imapSettings = new ServerSettings();
+    private Properties props = new Properties();
     private Folder inbox;
     private Session session;
     private Store store;
-    private List<File> attachments = new ArrayList<File>();
 
     private Context context = EmailActivity.this;
+
+    private ReceivedEmail email;
+    private List<File> attachments = new ArrayList<File>();
+
     private GridView gridView;
     private AttachmentAdapter attachmentAdapter;
 
-    ReceivedEmail email;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,7 +67,7 @@ public class EmailActivity extends Activity {
 
         // Get passed email
         Intent intent = getIntent();
-        email = (ReceivedEmail) intent.getParcelableExtra("email");
+        email = (ReceivedEmail) intent.getParcelableExtra(EMAIL);
         // DEBUG CODE //
         System.out.println(email);
 
@@ -75,8 +86,6 @@ public class EmailActivity extends Activity {
         dateView.setText(email.getReceivedDate().toString());
         fromView.setText(email.getFrom());
         subjectView.setText(email.getSubject());
-
-        Log.d("ATTACHMENT", email.getAttachment().toString());
 
         // Pass email content to webview
         messageView.getSettings().setJavaScriptEnabled(true);
@@ -113,8 +122,7 @@ public class EmailActivity extends Activity {
                 ReceivedEmail replyEmail = email;
 
                 // Pass email to new activity
-                viewEmail.putExtra("email", replyEmail);
-
+                viewEmail.putExtra(EMAIL, replyEmail);
 
                 startActivity(viewEmail);
             }
@@ -129,10 +137,10 @@ public class EmailActivity extends Activity {
             try{
                 props = new ServerProperties().getInboxProperties();
                 session = Session.getInstance(props, null);
-                store = session.getStore("imaps");
+                store = session.getStore(IMAPS);
                 store.connect(imapSettings.getServerAddress(), EmailUser.getEmailAddress(), EmailUser.getPassword());
 
-                inbox = store.getFolder("Inbox");
+                inbox = store.getFolder(INBOX);
                 UIDFolder uf = (UIDFolder) inbox;
                 inbox.open(Folder.READ_WRITE);
 
@@ -157,10 +165,10 @@ public class EmailActivity extends Activity {
                 // Init settings and inbox
                 props = new ServerProperties().getInboxProperties();
                 session = Session.getInstance(props, null);
-                store = session.getStore("imaps");
+                store = session.getStore(IMAPS);
                 store.connect(imapSettings.getServerAddress(), EmailUser.getEmailAddress(), EmailUser.getPassword());
 
-                inbox = store.getFolder("Inbox");
+                inbox = store.getFolder(INBOX);
                 UIDFolder uf = (UIDFolder) inbox;
                 inbox.open(Folder.READ_WRITE);
 
@@ -168,27 +176,27 @@ public class EmailActivity extends Activity {
                 Message message = uf.getMessageByUID(UID);
 
                 // Get multipart of message
-                Multipart multipart = (Multipart)message.getContent();
+                Object object = (Multipart)message.getContent();
 
-                // Loop through multipart to find the attachments
-                for(int i=0; i<multipart.getCount(); i++){
-                    Part bodyPart = multipart.getBodyPart(i);
-                    if(!Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())){
-                        continue;
+                // If string throw away
+                if(object instanceof String){
+
+                    String body = (String)object;
+                }else if (object instanceof Multipart){
+                    // Else if attachment download
+                    Multipart multipart = (Multipart)object;
+                    // Loop through multipart to find the attachments
+                    for(int i=0; i<multipart.getCount(); i++){
+                        Part bodyPart = multipart.getBodyPart(i);
+                        if(!Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())){
+                            continue;
+                        }
+
+                        File file = new File(context.getCacheDir() + "/" + bodyPart.getFileName());
+                        // Save to internal storage
+                        ((MimeBodyPart)bodyPart).saveFile(file);
+                        attachments.add(file);
                     }
-
-                    // DEBUG CODE //
-                    System.out.println("WE HAVE AN ATTACHMENT");
-                    // Save attachment
-
-                    // Create temp file from bodybody part
-                    //File file = File.createTempFile((bodyPart.getFileName()),null,context.getCacheDir());
-
-                    File file = new File(context.getCacheDir() + "/" + bodyPart.getFileName());
-                    System.out.println(file.toString());
-                    // Save to internal storage
-                    ((MimeBodyPart)bodyPart).saveFile(file);
-                    attachments.add(file);
                 }
 
                 inbox.close(false);
@@ -202,21 +210,12 @@ public class EmailActivity extends Activity {
             return null;
         }
 
+        /**
+         * If attachments are found update the UI
+         * @param result
+         */
         @Override
         protected void onPostExecute(Void result) {
-            // DEBUG CODE //
-            for(int i=0; i<attachments.size(); i++){
-                System.out.println("ON POST" + attachments.get(i));
-                File file = attachments.get(i);
-
-            }
-
-            // DEBUG CODE
-            File dir = context.getCacheDir();
-            String files[] = dir.list();
-            for(String s:files){
-                System.out.println("FILE : " +s);
-            }
             if(attachments!=null) {
                 attachmentAdapter = new AttachmentAdapter(context, attachments);
                 gridView.setAdapter(attachmentAdapter);
@@ -225,7 +224,7 @@ public class EmailActivity extends Activity {
     }
 
     /**
-     * Delete attachments from cache
+     * Force delete attachments from cache
      * @return
      */
     public void deleteFiles(){
@@ -236,7 +235,9 @@ public class EmailActivity extends Activity {
         }
     }
 
-    // Passes UID back to calling activity to update read identifier
+    /**
+     * Passes UID back to calling activity to update read identifier
+     */
     public void setRead(){
         Intent intent = new Intent();
         intent.putExtra("uid", email.getUID());
@@ -247,15 +248,11 @@ public class EmailActivity extends Activity {
      * Goes back to previous activity and delete attachments from cache
      */
     public void goBack(){
-
         // If there are attachments
         if(email.getAttachment()== true){
             // Perform cleaning
             deleteFiles();
             attachments.clear();
-
-        }else{
-            Toast.makeText(this, "ERROR CLEARING ATTACHMENTS", Toast.LENGTH_SHORT);
         }
         setRead();
         finish();

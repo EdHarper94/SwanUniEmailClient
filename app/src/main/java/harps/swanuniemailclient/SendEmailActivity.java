@@ -28,30 +28,33 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Class to send email via University IMAP server
+ * @file SendEmailActivity.java
+ * @author Ed Harper
+ * @date 29/03/2017
  *
- * @author Edward Harper
- * @date 29/03/17
+ * Activity for creating an outgoing email and passing it to sendEmail
+ * @see SendEmail
+ *
  */
 
 public class SendEmailActivity extends Activity {
 
+    private final String WEBVIEW_UTF = "UTF-8";
+    private final String WEBVIEW_SETTINGS = "text/html; charset=utf-8";
+
+    private static final int CHOOSER_CODE = 1;
+
+    private final String RECIPIENT_ERROR = "Please add a recipient.";
+    private final String SUCCESS = "Y";
+
     private Context context = SendEmailActivity.this;
 
-    private EditText toEditText;
-    private EditText subjectEditText;
-    private EditText messageEditText;
-    private EditText ccEditText;
-    private EditText bccEditText;
+    // Edit texts
+    private EditText toEditText, subjectEditText, messageEditText ,ccEditText, bccEditText;
 
-    private Button discardButton;
-    private Button attachmentButton;
-    private Button sendButton;
-    private Button addRecipientButton;
-    private Button ccBccButton;
-    private Button addCcButton;
-    private Button addBccButton;
-    private Button deleteAttButton;
+    // Buttons
+    private Button discardButton, attachmentButton, sendButton, addRecipientButton,
+                    ccBccButton, addCcButton, addBccButton, deleteAttButton;
 
     private LinearLayout ccContainer;
     private LinearLayout bccContainer;
@@ -75,30 +78,30 @@ public class SendEmailActivity extends Activity {
     private String originalSender;
     private Boolean attachment = false;
 
-    ReceivedEmail receivedEmail;
+    private ReceivedEmail receivedEmail;
     private Boolean isReply = false;
 
     private ArrayList<File> attachments = new ArrayList<>();
-
-    private static final int CHOOSER_CODE = 1;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.send_email);
 
 
+        // Init edit texts
         toEditText = (EditText)findViewById(R.id.to_edit_text);
         subjectEditText = (EditText)findViewById(R.id.subject_edit_text);
         messageEditText = (EditText)findViewById(R.id.message_edit_text);
         ccEditText = (EditText)findViewById(R.id.cc_edit_text);
         bccEditText = (EditText)findViewById(R.id.bcc_edit_text);
 
+        // Init views
         ccContainer = (LinearLayout)findViewById(R.id.cc_linear_container);
         bccContainer = (LinearLayout)findViewById(R.id.bcc_container);
         attachmentGrid = (GridView)findViewById(R.id.attachment_grid);
         replyContent = (WebView)findViewById(R.id.reply_content);
 
-
+        // Init buttons
         discardButton = (Button)findViewById(R.id.discard_button);
         addRecipientButton = (Button)findViewById(R.id.add_recipient_button);
         ccBccButton = (Button)findViewById(R.id.cc_bcc_button);
@@ -182,19 +185,21 @@ public class SendEmailActivity extends Activity {
 
     }
 
+    /**
+     * Adds replying data to UI
+     */
     public void prepareReply(){
-        System.out.println(receivedEmail);
         toEditText.setText(receivedEmail.getFrom());
         subjectEditText.setText("Re: " + receivedEmail.getSubject());
         replyContent.getSettings().setJavaScriptEnabled(true);
-        replyContent.loadDataWithBaseURL("", receivedEmail.getMessage(), "text/html; charset=utf-8", "UTF-8", "");
+        replyContent.loadDataWithBaseURL("", receivedEmail.getMessage(), WEBVIEW_SETTINGS , WEBVIEW_UTF, "");
     }
 
 
     /**
      * Select attachment using aFileChooser library.
      * Request required permission if not granted
-     * @See aFileChooser
+     * @See aFileChooser library
      */
     public void selectAttachment(){
         Intent contentIntent = FileUtils.createGetContentIntent();
@@ -213,10 +218,11 @@ public class SendEmailActivity extends Activity {
     }
 
     /**
-     * Gets permission request result
+     * Gets permission request result. If granted allowed try again
      * @param requestCode
      * @param permissions
      * @param grantResults
+     * @See aFileChooser library
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -231,7 +237,7 @@ public class SendEmailActivity extends Activity {
 
     /**
      * Checks required permission is granted
-     * @return
+     * @return permission check result
      */
     public boolean checkReadStoragePermission(){
         int permission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -244,28 +250,22 @@ public class SendEmailActivity extends Activity {
 
     /**
      * Once file has been selected save it
-     * @param requestCode
-     * @param resultCode
-     * @param data
+     * @param requestCode the activity code
+     * @param resultCode the result of the activity
+     * @param data the data passed back
      */
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == CHOOSER_CODE) {
-            System.out.println("REQUEST OKAY");
             if(resultCode == RESULT_OK) {
-                System.out.println(requestCode);
                 Uri uri = data.getData();
                 String filePath = FileUtils.getPath(context, uri);
-
                 if (filePath != null && FileUtils.isLocal(filePath)) {
                     File file = new File(filePath);
                     attachments.add(file);
                     displayAttachmentList();
                 }
-
-                System.out.println("FILE = " + filePath);
             }
         }else{
-            System.out.println("ERROR");
         }
     }
 
@@ -285,6 +285,7 @@ public class SendEmailActivity extends Activity {
         }
     }
 
+    // Deletes all selected attachments
     public void deleteAttachments(){
         attachment = false;
         attachmentGrid.setVisibility(View.GONE);
@@ -295,36 +296,43 @@ public class SendEmailActivity extends Activity {
 
 
     /**
-     * Gets the recipients from "to_edit_text"
-     * @return
+     * Gets the recipients from edit text field
+     * @return the recipients list
      */
     public String getRecipientList(){
         recipientList = toEditText.getText().toString();
         return recipientList;
     }
 
+    /**
+     * Gets the cc recipients from edit text field
+     * @return the cc recipient list
+     */
     public String getCcList(){
         ccList = ccEditText.getText().toString();
         return ccList;
     }
 
+    /**
+     * Gets the bcc recipients from edit text field
+     * @return the bcc recipients list
+     */
     public String getBccList(){
         bccList = bccEditText.getText().toString();
         return bccList;
     }
 
     /**
-     * Stores recipients
+     * Stores recipients and adds separator
      */
     public void addRecipient(){
         recipientList = getRecipientList();
-        System.out.println("ADD RECIP : " + recipientList);
         toEditText.setText(recipientList + "; ");
         Selection.setSelection(toEditText.getText(), toEditText.getText().length());
     }
 
     /**
-     * Stores cc recipients
+     * Stores cc recipients and adds separator
      */
     public void addCcRecipients(){
         ccList = getCcList();
@@ -335,18 +343,16 @@ public class SendEmailActivity extends Activity {
 
 
     /**
-     * Stores bcc recipients
+     * Stores bcc recipients and adds separator
      */
     public void addBccRecipients(){
-        bccList = getBccList();
-        System.out.println("ADD CC : " + bccList);
         bccEditText.setText(bccList + "; ");
         Selection.setSelection(bccEditText.getText(), bccEditText.getText().length());
     }
 
     /**
      * Final call to get recipients before sending
-     * @return
+     * @return the final recipients array list
      */
     public ArrayList<String> getFinalRecipients(){
         String[] recipientsStrings = getRecipientList().split(";");
@@ -355,9 +361,7 @@ public class SendEmailActivity extends Activity {
             String recipient = r.trim();
             if(!recipient.isEmpty()) {
                 recipients.add(recipient);
-                System.out.println(recipient);
             }else{
-                System.out.println("IS EMPTY");
             }
         }
         return recipients;
@@ -365,7 +369,7 @@ public class SendEmailActivity extends Activity {
 
     /**
      * Final call to get cc recipients before sending
-     * @return
+     * @return the final cc recipients array list
      */
     public ArrayList<String> getFinalCcRecipients(){
         String[] ccRecipientStrings = getCcList().split(";");
@@ -374,9 +378,7 @@ public class SendEmailActivity extends Activity {
             String recipient = r.trim();
             if(!recipient.isEmpty()) {
                 ccRecipients.add(recipient);
-                System.out.println(recipient);
             }else{
-                System.out.println("IS EMPTY");
             }
         }
         return ccRecipients;
@@ -384,7 +386,7 @@ public class SendEmailActivity extends Activity {
 
     /**
      * Final call to get cc recipients before sending
-     * @return
+     * @return the final bcc recipients array list
      */
     public ArrayList<String> getFinalBccRecipients(){
         String[] bccRecipientStrings = getBccList().split(";");
@@ -393,31 +395,25 @@ public class SendEmailActivity extends Activity {
             String recipient = r.trim();
             if(!recipient.isEmpty()) {
                 bccRecipients.add(recipient);
-                System.out.println(recipient);
             }else{
-                System.out.println("IS EMPTY");
             }
         }
         return bccRecipients;
     }
 
     /**
-     * Initialises email variables and passes them to AsyncTask
+     * Gets email variables and passes them to AsyncTask for sending
      */
     public void send(){
 
+        // Get Recipients
         recipients = getFinalRecipients();
         ccRecipients = getFinalCcRecipients();
         bccRecipients = getFinalBccRecipients();
-
-        for(String s : recipients){
-            System.out.println(s);
-        }
-
-
+        message = messageEditText.getText().toString();
+        // Check whether is reply
         if(!isReply) {
             subject = subjectEditText.getText().toString();
-            message = messageEditText.getText().toString();
             originalMessage = null;
             originalDate = null;
             originalSender = null;
@@ -429,26 +425,29 @@ public class SendEmailActivity extends Activity {
 
 
 
-        // If there are no carbon copy recipients
+        // Init outgoing email object
         outEmail = new OutgoingEmail(null, subject, message, attachment, recipients, ccRecipients, bccRecipients, attachments, originalSender, originalMessage, originalDate);
 
-
+        // If recipients have been added then send the email
         if(recipients!= null) {
             SendEmail se = new SendEmail(context, outEmail, new SendEmail.SendEmailResponse() {
                 @Override
                 public void sendEmailResult(String result) {
-                    if(result.equals("Y")){
+                    if(result.equals(SUCCESS)){
                         clearRecipientArrays();
                     }
                 }
             });
             se.execute();
         }else{
-            Toast.makeText(context, "Please Enter a recipient.", Toast.LENGTH_LONG);
+            Toast.makeText(context, RECIPIENT_ERROR, Toast.LENGTH_LONG);
         }
 
     }
 
+    /**
+     * Discard the email and destroy activity
+     */
     public void discardEmail(){
         finish();
     }

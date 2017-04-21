@@ -6,9 +6,12 @@ import android.os.Parcelable;
 import java.util.Date;
 
 /**
- * Received Email - Email received by user. (Inbox)
+ * @file ReceivedEmail.java
+ * @author Ed Harper
+ * @date 31/03/2017
  *
- * Created by eghar on 31/03/2017.
+ * Received email object for storing and maintaing received email data
+ * Implements parcelable to allow objects to be passed through intents
  */
 
 public class ReceivedEmail extends Email implements Parcelable {
@@ -21,6 +24,16 @@ public class ReceivedEmail extends Email implements Parcelable {
 
     }
 
+    /**
+     * Initialises received email object
+     * @param UID unique identifier of the email
+     * @param subject email subject
+     * @param message email message
+     * @param attachment email attachment boolean
+     * @param from email from email address
+     * @param receivedDate date email was received
+     * @param unread email unread boolean value
+     */
     public ReceivedEmail(Long UID, String subject, String message, Boolean attachment, String from, Date receivedDate, Boolean unread){
         super(UID, subject, message, attachment);
         this.from = from;
@@ -40,6 +53,10 @@ public class ReceivedEmail extends Email implements Parcelable {
         return unread;
     }
 
+    /**
+     * Sets unread value to the passed boolean value
+     * @param unread the passed boolean value
+     */
     public void setUnread(Boolean unread){
         this.unread = unread;
     }
@@ -49,6 +66,10 @@ public class ReceivedEmail extends Email implements Parcelable {
         return " From: " + getFrom() + ". Date: " + getReceivedDate() + ". Read: " + getUnread();
     }
 
+    /**
+     * Initialises parcel with data passed from in
+     * @param in
+     */
     protected ReceivedEmail(Parcel in) {
         super(in);
         from = in.readString();
@@ -63,6 +84,11 @@ public class ReceivedEmail extends Email implements Parcelable {
         return 0;
     }
 
+    /**
+     * Packaged object into parcel
+     * @param dest the destination parcel
+     * @param flags flags about how the object should be written
+     */
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         super.writeToParcel(dest, flags);
